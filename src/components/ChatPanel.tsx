@@ -1,22 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, User, Lightbulb, Paperclip, Menu, Apple, Scale, Smile, Zap } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Lightbulb, Paperclip, Menu, AlertCircle } from 'lucide-react';
 import type { Message } from '../types';
 import { chatMessagesMap } from '../data/mockData';
+import { sendChatMessage } from '../services/chatService';
 
 interface ChatPanelProps {
   onToggleSidebar: () => void;
   activeChatId: string;
-}
-
-/** 简单的 markdown 渲染：支持 **粗体** 和换行 */
-function renderMessageContent(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
-    }
-    return <span key={i}>{part}</span>;
-  });
 }
 
 export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelProps) {
@@ -24,6 +14,8 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isDeepThinking, setIsDeepThinking] = useState(false);
+  const [streamingText, setStreamingText] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,11 +23,13 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
     setMessages(chatMessagesMap[activeChatId] || []);
     setInputValue('');
     setIsTyping(false);
+    setStreamingText('');
+    setError(null);
   }, [activeChatId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  }, [messages, streamingText]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -44,10 +38,10 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
     }
   }, [inputValue]);
 
-  const handleSend = (deepThinking = false) => {
+  const handleSend = useCallback(async (deepThinking = false) => {
     if (!inputValue.trim() || isTyping) return;
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: String(Date.now()),
       content: inputValue,
       sender: 'user',
@@ -60,17 +54,29 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
       type: 'text',
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
     setIsDeepThinking(deepThinking);
+    setStreamingText('');
+    setError(null);
 
-    setTimeout(() => {
-      const aiResponse: Message = {
+    // 构建发送给API的消息历史（只取最近10条避免token过多）
+    const recentMessages = [...messages, userMessage].slice(-10).map(m => ({
+      content: m.content,
+      sender: m.sender,
+    }));
+
+    try {
+      const fullText = await sendChatMessage(
+        recentMessages,
+        (text) => setStreamingText(text),
+      );
+
+      // 流式完成，添加完整消息
+      const aiMessage: Message = {
         id: String(Date.now() + 1),
-        content: deepThinking
-          ? '好的，让我深度分析一下你的情况...\n\n根据你的问题，我来给你详细的建议！需要我继续深入吗？'
-          : '收到你的消息！这是一个很好的问题。\n\n让我来帮你分析一下...',
+        content: fullText || '抱歉，我暂时无法回复，请稍后再试~',
         sender: 'ai',
         timestamp: new Date().toLocaleString('zh-CN', {
           month: '2-digit',
@@ -80,11 +86,16 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
         }),
         type: 'text',
       };
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      setError(err instanceof Error ? err.message : '发送失败，请稍后再试');
+    } finally {
       setIsTyping(false);
       setIsDeepThinking(false);
-    }, deepThinking ? 3000 : 1500);
-  };
+      setStreamingText('');
+    }
+  }, [inputValue, isTyping, messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -93,108 +104,81 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
     }
   };
 
-  const quickActions = [
-    { label: '记录饮食', icon: Apple, color: 'emerald', action: '我今天吃了：' },
-    { label: '记录体重', icon: Scale, color: 'teal', action: '我今天体重是：' },
-    { label: '记录心情', icon: Smile, color: 'green', action: '我今天的心情是：' },
-  ];
+  // 简单的markdown渲染：**粗体** 和换行
+  const renderContent = (text: string) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-bold text-emerald-800">{part.slice(2, -2)}</strong>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  const chatTitle =
+    activeChatId === '1' ? '减脂备餐规划' :
+    activeChatId === '2' ? '运动计划建议' :
+    activeChatId === '3' ? '饮食咨询' : '新手入门指导';
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-gradient-to-br from-green-50/30 via-emerald-50/20 to-teal-50/30">
-      {/* 顶部导航栏 */}
-      <div className="h-16 border-b border-emerald-100 bg-white/70 backdrop-blur-sm flex items-center px-4 sm:px-6 shadow-sm">
+    <div className="flex-1 flex flex-col h-screen bg-white">
+      {/* 顶部栏 */}
+      <div className="h-16 border-b-2 border-gray-100 bg-white flex items-center px-6 shadow-sm">
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={onToggleSidebar}
-              className="lg:hidden p-2 hover:bg-emerald-50 rounded-xl transition-colors"
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <Menu className="h-5 w-5 text-emerald-600" />
+              <Menu className="h-5 w-5 text-gray-600" />
             </button>
-            <h2 className="text-base sm:text-lg font-bold text-gray-800">
-              {activeChatId === '1' ? '减脂备餐规划' :
-               activeChatId === '2' ? '运动计划建议' :
-               activeChatId === '3' ? '饮食咨询' : '新手入门指导'}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-medium border border-emerald-100">
-              <Zap className="h-3 w-3" />
-              快速模式
+            <h2 className="text-lg font-bold text-gray-900">{chatTitle}</h2>
+            <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-medium">
+              <Lightbulb className="h-3 w-3" />
+              AI 模式
             </span>
           </div>
-        </div>
-      </div>
-
-      {/* AI伙伴状态栏 */}
-      <div className="px-4 sm:px-6 py-3 bg-white/50 border-b border-emerald-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-sm">
-                <span className="text-sm">🌱</span>
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-white animate-pulse" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-emerald-700">AI 减脂伙伴</p>
-              <p className="text-[10px] text-emerald-500">养成等级 Lv.5</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <p className="text-[10px] text-gray-400">经验值</p>
-              <p className="text-xs font-bold text-emerald-600">2,450 / 3,000</p>
-            </div>
-            <div className="w-20 h-2 bg-emerald-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-progress"
-                style={{ width: '81.7%' }}
-              />
-            </div>
+            <button className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
+              <Paperclip className="h-5 w-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-          {messages.map((message, index) => (
-            <div
-              key={message.id}
-              className="mb-5 animate-fade-in-up"
-              style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
-            >
-              <div className={`flex gap-3 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                {/* 头像 */}
+      {/* 消息区域 */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {messages.map((message) => (
+            <div key={message.id} className="mb-6 animate-fade-in-up">
+              <div className={`flex gap-4 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                 <div className="flex-shrink-0">
                   {message.sender === 'user' ? (
-                    <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-sm">
-                      <User className="h-4 w-4 text-white" />
+                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-sm">
+                      <span className="text-sm font-bold text-white">你</span>
                     </div>
                   ) : (
-                    <div className="w-9 h-9 bg-gradient-to-br from-emerald-300 to-teal-400 rounded-2xl flex items-center justify-center shadow-sm">
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-sm">
                       <span className="text-base">🌱</span>
                     </div>
                   )}
                 </div>
 
-                {/* 消息内容 */}
-                <div className={`flex-1 max-w-[85%] ${message.sender === 'user' ? 'flex flex-col items-end' : ''}`}>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-semibold text-gray-600">
-                      {message.sender === 'user' ? '你' : '🌱 AI伙伴'}
+                <div className="flex-1 max-w-[85%]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold text-gray-800">
+                      {message.sender === 'user' ? '你' : '小绿 AI'}
                     </span>
-                    <span className="text-[10px] text-gray-400">{message.timestamp}</span>
+                    <span className="text-xs text-gray-500">{message.timestamp}</span>
                   </div>
 
-                  <div className={`px-4 py-3 rounded-2xl ${
+                  <div className={`p-4 rounded-2xl ${
                     message.sender === 'user'
-                      ? 'bubble-user text-gray-800 ml-auto max-w-fit'
-                      : 'bubble-ai text-gray-800'
+                      ? 'bg-emerald-500 text-white ml-auto max-w-fit shadow-md shadow-emerald-200/50'
+                      : 'bubble-ai text-gray-800 shadow-sm'
                   }`}>
-                    <div className="message-content text-sm leading-relaxed whitespace-pre-line">
-                      {renderMessageContent(message.content)}
+                    <div className="message-content leading-relaxed whitespace-pre-wrap">
+                      {renderContent(message.content)}
                     </div>
                   </div>
                 </div>
@@ -202,35 +186,71 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
             </div>
           ))}
 
-          {/* 打字指示器 */}
-          {isTyping && (
-            <div className="mb-5 animate-fade-in-up">
-              <div className="flex gap-3">
+          {/* 流式输出中的消息 */}
+          {isTyping && streamingText && (
+            <div className="mb-6 animate-fade-in-up">
+              <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-9 h-9 bg-gradient-to-br from-emerald-300 to-teal-400 rounded-2xl flex items-center justify-center shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-sm">
                     <span className="text-base">🌱</span>
                   </div>
                 </div>
                 <div className="flex-1 max-w-[85%]">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-semibold text-gray-600">🌱 AI伙伴</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold text-gray-800">小绿 AI</span>
                   </div>
-                  <div className="bubble-ai px-4 py-3 rounded-2xl inline-block">
-                    {isDeepThinking ? (
-                      <div className="flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4 text-emerald-500 animate-pulse" />
-                        <span className="text-sm text-emerald-600 font-medium">正在深度思考中...</span>
-                      </div>
-                    ) : (
-                      <div className="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    )}
+                  <div className="bubble-ai p-4 rounded-2xl shadow-sm text-gray-800">
+                    <div className="message-content leading-relaxed whitespace-pre-wrap">
+                      {renderContent(streamingText)}
+                      <span className="inline-block w-2 h-4 bg-emerald-500 ml-1 animate-pulse" />
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* 打字动画（等待API响应时） */}
+          {isTyping && !streamingText && (
+            <div className="mb-6 animate-fade-in-up">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-sm">
+                    <span className="text-base">🌱</span>
+                  </div>
+                </div>
+                <div className="flex-1 max-w-[85%]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold text-gray-800">小绿 AI</span>
+                    {isDeepThinking && (
+                      <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        深度思考中...
+                      </span>
+                    )}
+                  </div>
+                  <div className="bubble-ai p-4 rounded-2xl shadow-sm">
+                    <div className="typing-indicator">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 错误提示 */}
+          {error && (
+            <div className="mb-6 flex items-center gap-2 bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 animate-fade-in-up">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm">{error}</span>
+              <button
+                onClick={() => setError(null)}
+                className="ml-auto text-red-400 hover:text-red-600 text-sm"
+              >
+                关闭
+              </button>
             </div>
           )}
 
@@ -239,67 +259,58 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
       </div>
 
       {/* 输入区域 */}
-      <div className="border-t border-emerald-100 bg-white/70 backdrop-blur-sm p-3 sm:p-4 shadow-[0_-4px_20px_rgba(16,185,129,0.05)]">
+      <div className="border-t-2 border-gray-100 bg-white p-4 sm:p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <div className="max-w-4xl mx-auto">
-          {/* 快捷操作按钮 */}
-          <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1">
-            {quickActions.map((qa) => (
+          <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl overflow-hidden">
+            {/* 快捷操作 */}
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b-2 border-gray-200 bg-white">
               <button
-                key={qa.label}
-                onClick={() => {
-                  setInputValue(qa.action);
-                  textareaRef.current?.focus();
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium transition-all duration-200 border border-emerald-100 hover:border-emerald-200 whitespace-nowrap flex-shrink-0"
+                onClick={() => { setInputValue('我今天吃了：'); }}
+                disabled={isTyping}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
               >
-                <qa.icon className="h-3.5 w-3.5" />
-                {qa.label}
+                🍽️ 记录饮食
               </button>
-            ))}
-          </div>
-
-          <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl overflow-hidden focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100 transition-all duration-300">
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-emerald-100/50 bg-white/50">
               <button
-                onClick={() => handleSend(true)}
-                disabled={!inputValue.trim() || isTyping}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                  inputValue.trim() && !isTyping
-                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
+                onClick={() => { setInputValue('我今天体重是：'); }}
+                disabled={isTyping}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
               >
-                <Lightbulb className="h-3.5 w-3.5" />
-                深度思考
+                ⚖️ 记录体重
+              </button>
+              <button
+                onClick={() => { setInputValue('我今天的心情是：'); }}
+                disabled={isTyping}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
+              >
+                😊 记录心情
               </button>
             </div>
 
-            <div className="relative p-3">
-              <label htmlFor="chat-input" className="sr-only">给 AI 减脂伙伴发送消息</label>
+            <div className="relative p-4">
               <textarea
-                id="chat-input"
                 ref={textareaRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="跟你的AI伙伴聊点什么..."
-                className="w-full bg-transparent resize-none text-gray-800 placeholder-emerald-400/50 focus:outline-none text-sm"
+                placeholder="和小绿聊聊你的减脂日常..."
+                className="w-full bg-transparent resize-none text-gray-800 placeholder-gray-400 focus:outline-none text-base"
                 rows={2}
                 style={{ maxHeight: '200px' }}
+                disabled={isTyping}
               />
-              <div className="absolute right-3 bottom-3 flex items-center gap-2">
-                <button className="p-1.5 hover:bg-emerald-100 rounded-lg transition-colors" aria-label="上传文件">
-                  <Paperclip className="h-4 w-4 text-emerald-400" />
+              <div className="absolute right-4 bottom-4 flex items-center gap-3">
+                <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+                  <Paperclip className="h-4 w-4 text-gray-500" />
                 </button>
                 <button
                   onClick={() => handleSend(false)}
                   disabled={!inputValue.trim() || isTyping}
-                  className={`p-2 rounded-xl transition-all duration-300 ${
+                  className={`p-2 rounded-xl transition-all ${
                     inputValue.trim() && !isTyping
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-200 hover:shadow-lg hover:scale-105'
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md shadow-emerald-200/50'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
-                  aria-label="发送消息"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -307,8 +318,8 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
             </div>
           </div>
 
-          <p className="text-center text-[10px] text-emerald-400 mt-2">
-            🌱 内容由 AI 伙伴生成，请仔细甄别
+          <p className="text-center text-xs text-gray-400 mt-3">
+            内容由 AI 生成，请仔细甄别
           </p>
         </div>
       </div>
