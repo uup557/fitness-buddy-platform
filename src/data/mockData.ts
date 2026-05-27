@@ -14,7 +14,8 @@ export const mockUser: UserProfile = {
   startDate: '2024-01-01'
 };
 
-export const mockMessages: Message[] = [
+// Chat 1 - 减脂备餐规划
+export const mockChat1Messages: Message[] = [
   {
     id: '1',
     content: '嗨！我是你的 AI 减脂教练，很高兴为你服务！请问今天有什么可以帮到你的？',
@@ -24,7 +25,7 @@ export const mockMessages: Message[] = [
   },
   {
     id: '2',
-    content: '你好！我想咨询一下减脂计划',
+    content: '你好！我想咨询一下减脂备餐规划',
     sender: 'user',
     timestamp: '2024-05-27 08:05',
     type: 'text'
@@ -49,22 +50,91 @@ export const mockMessages: Message[] = [
     sender: 'ai',
     timestamp: '2024-05-27 08:12',
     type: 'text'
-  },
+  }
+];
+
+// Chat 2 - 运动计划建议
+export const mockChat2Messages: Message[] = [
   {
-    id: '6',
-    content: '可以详细说说饮食方面吗？',
-    sender: 'user',
-    timestamp: '2024-05-27 08:15',
+    id: '1',
+    content: '嗨！今天想聊什么呢？',
+    sender: 'ai',
+    timestamp: '2024-05-27 10:00',
     type: 'text'
   },
   {
-    id: '7',
-    content: '当然可以！饮食是减脂的核心，我来给你详细的饮食建议：\n\n**早餐（300-400卡路里）：**\n- 鸡蛋2个 + 全麦面包2片 + 牛奶200ml\n- 或 燕麦50g + 牛奶 + 水果\n\n**午餐（400-500卡路里）：**\n- 主食：糙米/藜麦半碗\n- 蛋白质：鸡胸肉/鱼/豆腐150g\n- 蔬菜：大量绿叶蔬菜\n\n**晚餐（300-400卡路里）：**\n- 清淡为主，减少碳水\n- 可以多吃蔬菜和蛋白质\n\n**加餐：**\n- 水果、坚果、无糖酸奶\n\n记得多喝水，饭前喝一杯有助于增加饱腹感哦！',
+    id: '2',
+    content: '你好！我想了解一下适合我的运动计划',
+    sender: 'user',
+    timestamp: '2024-05-27 10:02',
+    type: 'text'
+  },
+  {
+    id: '3',
+    content: '好的！根据你的情况，我来制定一个适合你的运动计划。\n\n**周一、周三、周五：**\n- 有氧训练：跑步、骑车、游泳等，每次45分钟\n- 强度：中等强度，能正常说话但不能唱歌\n\n**周二、周六：**\n- 力量训练：哑铃或自重训练，每次45分钟\n- 主要训练：深蹲、硬拉、卧推等复合动作\n\n**其他：**\n- 每天10分钟拉伸\n- 步数目标：10,000步\n\n需要我详细讲解某个动作吗？',
     sender: 'ai',
-    timestamp: '2024-05-27 08:18',
+    timestamp: '2024-05-27 10:05',
     type: 'text'
   }
 ];
+
+// Chat 3 - 饮食咨询
+export const mockChat3Messages: Message[] = [
+  {
+    id: '1',
+    content: '嗨！我是你的 AI 减脂教练，很高兴为你服务！',
+    sender: 'ai',
+    timestamp: '2024-05-25 14:00',
+    type: 'text'
+  },
+  {
+    id: '2',
+    content: '你好！我想了解一下减脂期间应该怎么吃',
+    sender: 'user',
+    timestamp: '2024-05-25 14:02',
+    type: 'text'
+  },
+  {
+    id: '3',
+    content: '太好了！饮食是减脂的关键。让我给你一些建议：\n\n**早餐建议：**\n- 鸡蛋2个 + 全麦面包2片\n- 或 燕麦50g + 牛奶200ml\n- 配一个水果（苹果、香蕉等）\n\n**午餐建议：**\n- 主食：糙米/藜麦/红薯半碗\n- 蛋白质：鸡胸肉/鱼/豆腐150g\n- 蔬菜：大量绿叶蔬菜\n\n**晚餐建议：**\n- 清淡为主，减少碳水\n- 多吃蔬菜和蛋白质\n\n**加餐：**\n- 上午/下午可以吃一小份坚果或水果\n\n需要我推荐具体食谱吗？',
+    sender: 'ai',
+    timestamp: '2024-05-25 14:05',
+    type: 'text'
+  }
+];
+
+// Chat 4 - 新手入门指导
+export const mockChat4Messages: Message[] = [
+  {
+    id: '1',
+    content: '你好！我是你的 AI 减脂教练，很高兴为你服务！请问今天有什么可以帮到你的？',
+    sender: 'ai',
+    timestamp: '2024-05-20 09:00',
+    type: 'text'
+  },
+  {
+    id: '2',
+    content: '你好！我刚开始接触减脂，完全不知道该从哪里入手',
+    sender: 'user',
+    timestamp: '2024-05-20 09:05',
+    type: 'text'
+  },
+  {
+    id: '3',
+    content: '别担心！我会一步步带你入门的。让我们从最简单的开始：\n\n**第一步：了解基础概念**\n- 热量赤字：消耗大于摄入\n- 宏量营养素：蛋白质、碳水、脂肪\n\n**第二步：开始记录**\n- 记录你的体重变化\n- 记录你每天吃的食物\n- 记录你的运动量\n\n**第三步：小目标设定**\n- 每周减0.5-1kg是健康速度\n- 不要追求快速减脂\n\n**第四步：开始行动**\n- 每天增加一点活动量\n- 从简单的食物调整开始\n\n你想从哪里开始呢？我可以详细解释每一部分！',
+    sender: 'ai',
+    timestamp: '2024-05-20 09:10',
+    type: 'text'
+  }
+];
+
+// 聊天数据映射
+export const chatMessagesMap: Record<string, Message[]> = {
+  '1': mockChat1Messages,
+  '2': mockChat2Messages,
+  '3': mockChat3Messages,
+  '4': mockChat4Messages,
+};
 
 export const mockWeightRecords: WeightRecord[] = [
   { date: '2024-05-01', weight: 78.5, bodyFatRate: 24.2 },
