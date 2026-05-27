@@ -21,53 +21,12 @@ Vercel构建失败，TypeScript报错缺少以下类型定义：
 组件文件引用了types中未定义的新增类型
 
 ### 修复方案
-在 `src/types/index.ts` 中添加缺失的类型定义：
-```typescript
-export interface Activity {
-  id: string;
-  title: string;
-  description: string;
-  type: 'running' | 'gym' | 'yoga' | 'cycling' | 'swimming' | 'hiking' | 'team_sport';
-  date: string;
-  time: string;
-  location: string;
-  currentParticipants: number;
-  maxParticipants: number;
-  tags: string[];
-}
-
-export interface CommunityPost {
-  id: string;
-  author: { name: string; avatar: string };
-  content: string;
-  image?: string;
-  likes: number;
-  comments: number;
-  createdAt: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  level: number;
-  bio: string;
-  location: string;
-  joinDate: string;
-  fitnessGoals: string[];
-}
-```
+在 `src/types/index.ts` 中添加缺失的类型定义
 
 ### 预防措施
 - ⚠️ 添加新类型后，立即检查所有引用该类型的组件
 - ⚠️ 提交前运行 `npm run build` 验证
 - ⚠️ 使用一致的命名规范
-
-### 相关文件
-- `src/types/index.ts`
-- `src/components/ActivityCard.tsx`
-- `src/components/CommunityPostCard.tsx`
-- `src/components/UserCard.tsx`
 
 ---
 
@@ -80,23 +39,9 @@ export interface User {
 ### 问题描述
 `src/components/DataDashboard.tsx(1,24): error TS6133: 'TrendingUp' is declared but its value is never read.`
 
-### 根本原因
-从lucide-react导入了 `TrendingUp` 但未在组件中使用
-
-### 修复方案
-移除未使用的导入：
-```typescript
-// ❌ 修复前
-import { TrendingDown, TrendingUp, Flame, ... } from 'lucide-react';
-
-// ✅ 修复后
-import { TrendingDown, Flame, ... } from 'lucide-react';
-```
-
 ### 预防措施
 - ⚠️ 定期检查ESLint警告
 - ⚠️ 使用IDE的代码检查功能
-- ⚠️ 提交前运行lint检查
 
 ---
 
@@ -107,29 +52,11 @@ import { TrendingDown, Flame, ... } from 'lucide-react';
 **状态**: ✅ 已修复
 
 ### 问题描述
-TypeScript严格模式下，以下参数缺少类型注解：
-- `src/components/ActivityCard.tsx(96,31): Parameter 'tag' implicitly has an 'any' type`
-- `src/components/UserCard.tsx(39,35): Parameter 'goal' implicitly has an 'any' type`
-
-### 根本原因
 .map()回调函数中的参数没有明确类型注解
-
-### 修复方案
-添加明确的类型注解：
-```typescript
-// ❌ 修复前
-{activity.tags.map((tag) => ...)}
-{user.fitnessGoals.map((goal) => ...)}
-
-// ✅ 修复后
-{activity.tags.map((tag: string) => ...)}
-{user.fitnessGoals.map((goal: string) => ...)}
-```
 
 ### 预防措施
 - ⚠️ 在tsconfig.json中启用严格模式
 - ⚠️ 避免使用any类型
-- ⚠️ 为所有函数参数添加类型注解
 
 ---
 
@@ -143,11 +70,7 @@ TypeScript严格模式下，以下参数缺少类型注解：
 Vercel部署的是旧版本应用，缺少最新的侧边栏和聊天切换功能
 
 ### 根本原因
-GitHub上的代码是旧版本，缺少关键组件和数据结构：
-- `src/App.tsx` - 使用旧的Navbar组件
-- `src/components/Sidebar.tsx` - 完全缺失
-- `src/components/ChatPanel.tsx` - 旧版本，不支持多对话
-- `src/data/mockData.ts` - 缺少 `chatMessagesMap` 和多对话数据
+GitHub上的代码是旧版本，缺少关键组件和数据结构
 
 ### 修复方案
 推送完整的最新代码到GitHub main分支
@@ -157,12 +80,6 @@ GitHub上的代码是旧版本，缺少关键组件和数据结构：
 - ⚠️ 使用git status检查未提交的文件
 - ⚠️ 部署前验证GitHub上的代码是最新的
 - ⚠️ 创建本地和GitHub的完整备份机制
-
-### 相关文件
-- `src/App.tsx`
-- `src/components/Sidebar.tsx`
-- `src/components/ChatPanel.tsx`
-- `src/data/mockData.ts`
 
 ---
 
@@ -175,37 +92,54 @@ GitHub上的代码是旧版本，缺少关键组件和数据结构：
 ### 问题描述
 `src/components/ChatPanel.tsx(4,10): error TS2305: Module '"../data/mockData"' has no exported member 'chatMessagesMap'.`
 
-### 根本原因
-ChatPanel组件引用了mockData.ts中未导出的 `chatMessagesMap`
-
 ### 修复方案
 在 `src/data/mockData.ts` 中添加完整的聊天数据映射：
-```typescript
-// Chat 1 - 减脂备餐规划
-export const mockChat1Messages: Message[] = [...];
-
-// Chat 2 - 运动计划建议
-export const mockChat2Messages: Message[] = [...];
-
-// Chat 3 - 饮食咨询
-export const mockChat3Messages: Message[] = [...];
-
-// Chat 4 - 新手入门指导
-export const mockChat4Messages: Message[] = [...];
-
-// 聊天数据映射
-export const chatMessagesMap: Record<string, Message[]> = {
-  '1': mockChat1Messages,
-  '2': mockChat2Messages,
-  '3': mockChat3Messages,
-  '4': mockChat4Messages,
-};
-```
+- `mockChat1Messages`
+- `mockChat2Messages`
+- `mockChat3Messages`
+- `mockChat4Messages`
+- `chatMessagesMap`
 
 ### 预防措施
 - ⚠️ 添加新导出前先检查是否在其他地方引用
 - ⚠️ 使用统一的数据导出模式
 - ⚠️ 建立数据结构的完整文档
+
+---
+
+## 🐛 Bug #6: Tailwind CSS版本语法不匹配
+
+**日期**: 2026-05-27  
+**严重程度**: 🔴 高  
+**状态**: ✅ 已修复
+
+### 问题描述
+GitHub上的 `src/index.css` 使用了Tailwind CSS v3语法，但项目使用的是v4：
+```css
+/* ❌ 错误 - v3语法 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ 正确 - v4语法 */
+@import "tailwindcss";
+```
+
+### 根本原因
+项目使用 `@tailwindcss/vite` 插件（v4特性），但CSS文件未同步更新
+
+### 修复方案
+修改 `src/index.css` 使用v4语法
+
+### 预防措施
+- ⚠️ 项目升级依赖时同步更新配置
+- ⚠️ package.json和配置文件保持版本一致
+- ⚠️ 查阅官方升级指南
+
+### 相关文件
+- `src/index.css`
+- `vite.config.ts`
+- `package.json`
 
 ---
 
@@ -223,6 +157,10 @@ export const chatMessagesMap: Record<string, Message[]> = {
 - **模式**: 组件引用不存在的导出
 - **预防**: 检查所有import语句、验证导出存在、运行构建测试
 
+### 4. 框架版本不匹配
+- **模式**: 配置文件与实际使用的框架版本不一致
+- **预防**: 升级依赖时同步更新配置、查阅官方升级指南
+
 ---
 
 ## 🔧 排查清单
@@ -235,8 +173,36 @@ export const chatMessagesMap: Record<string, Message[]> = {
 4. ✅ 确认GitHub代码是最新的
 5. ✅ 检查package.json依赖是否正确
 6. ✅ 查看vercel.json配置是否正确
+7. ✅ 验证框架版本语法（如Tailwind CSS v3 vs v4）
+
+---
+
+## 📝 提交检查清单（必做）
+
+在提交代码到GitHub之前，必须完成：
+
+1. **本地构建测试**
+   ```bash
+   npm run build
+   ```
+
+2. **Git状态检查**
+   ```bash
+   git status
+   ```
+
+3. **代码同步确认**
+   - 确认所有修改的文件都已提交
+   - 确认GitHub上的文件是最新的
+
+4. **查看BUG_HISTORY.md**
+   - 如果遇到新问题，记录到文档中
+   - 验证不是历史bug的重复
 
 ---
 
 ## 📝 更新日志
-- 2026-05-27: 创建Bug历史文档，记录5个主要bug及其解决方案
+- 2026-05-27: 创建Bug历史文档
+- 2026-05-27: 添加Bug #1-5的记录
+- 2026-05-27: 添加Bug #6（Tailwind CSS版本语法不匹配）
+- 2026-05-27: 添加"提交检查清单"章节
