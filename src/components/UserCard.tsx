@@ -36,7 +36,7 @@ export default function UserCard({ user, onFollow }: UserCardProps) {
         </div>
 
         <div className="flex flex-wrap justify-center gap-2 mb-4">
-          {user.fitnessGoals.map((goal) => (
+          {user.fitnessGoals.map((goal: string) => (
             <span
               key={goal}
               className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full text-xs"

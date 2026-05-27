@@ -93,7 +93,7 @@ export default function ActivityCard({ activity, onJoin }: ActivityCardProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {activity.tags.map((tag) => (
+          {activity.tags.map((tag: string) => (
             <span
               key={tag}
               className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs"

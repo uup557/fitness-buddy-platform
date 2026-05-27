@@ -69,3 +69,40 @@ export interface WeeklyReport {
   totalCaloriesIntake: number;
   avgSteps: number;
 }
+
+export interface Activity {
+  id: string;
+  title: string;
+  description: string;
+  type: 'running' | 'gym' | 'yoga' | 'cycling' | 'swimming' | 'hiking' | 'team_sport';
+  date: string;
+  time: string;
+  location: string;
+  currentParticipants: number;
+  maxParticipants: number;
+  tags: string[];
+}
+
+export interface CommunityPost {
+  id: string;
+  author: {
+    name: string;
+    avatar: string;
+  };
+  content: string;
+  image?: string;
+  likes: number;
+  comments: number;
+  createdAt: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  level: number;
+  bio: string;
+  location: string;
+  joinDate: string;
+  fitnessGoals: string[];
+}
