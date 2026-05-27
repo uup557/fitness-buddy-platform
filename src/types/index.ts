@@ -1,69 +1,71 @@
-export interface User {
+export interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'ai';
+  timestamp: string;
+  type: 'text' | 'image' | 'system';
+}
+
+export interface UserProfile {
   id: string;
   name: string;
   avatar: string;
-  bio: string;
-  level: string;
-  fitnessGoals: string[];
-  location: string;
-  joinDate: string;
+  age: number;
+  height: number;
+  weight: number;
+  targetWeight: number;
+  bodyFatRate: number;
+  goal: 'lose_weight' | 'maintain' | 'gain_muscle';
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  startDate: string;
 }
 
-export interface Activity {
-  id: string;
-  title: string;
-  description: string;
-  type: 'running' | 'gym' | 'yoga' | 'cycling' | 'swimming' | 'hiking' | 'team_sport';
+export interface WeightRecord {
   date: string;
-  time: string;
-  location: string;
-  maxParticipants: number;
-  currentParticipants: number;
-  organizer: User;
-  participants: User[];
-  tags: string[];
+  weight: number;
+  bodyFatRate?: number;
+  muscleMass?: number;
+  waterRate?: number;
 }
 
-export interface Message {
+export interface ExerciseRecord {
   id: string;
-  sender: User;
-  content: string;
-  timestamp: string;
-  read: boolean;
-}
-
-export interface ChatRoom {
-  id: string;
-  participants: User[];
-  lastMessage?: Message;
-  unreadCount: number;
-}
-
-export interface WorkoutPlan {
-  id: string;
-  title: string;
-  description: string;
+  date: string;
+  type: 'cardio' | 'strength' | 'yoga' | 'flexibility';
   duration: number;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  exercises: Exercise[];
-  createdBy: User;
-}
-
-export interface Exercise {
-  id: string;
-  name: string;
-  sets: number;
-  reps: number;
-  rest: number;
+  calories: number;
   description: string;
 }
 
-export interface CommunityPost {
+export interface DietRecord {
   id: string;
-  author: User;
-  content: string;
-  image?: string;
-  likes: number;
-  comments: number;
-  createdAt: string;
+  date: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  food: string;
+}
+
+export interface DailyStats {
+  date: string;
+  caloriesIntake: number;
+  caloriesBurned: number;
+  caloriesGoal: number;
+  steps: number;
+  waterIntake: number;
+  sleepHours: number;
+}
+
+export interface WeeklyReport {
+  weekStart: string;
+  weekEnd: string;
+  avgWeight: number;
+  weightChange: number;
+  avgBodyFat: number;
+  totalExerciseMinutes: number;
+  totalCaloriesBurned: number;
+  totalCaloriesIntake: number;
+  avgSteps: number;
 }
