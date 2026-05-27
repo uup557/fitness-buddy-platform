@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Screenshots & build artifacts
+screenshot*.png
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
