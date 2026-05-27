@@ -1,163 +1,129 @@
-import type { User, Activity, CommunityPost, WorkoutPlan } from '../types';
+import type { Message, UserProfile, WeightRecord, ExerciseRecord, DietRecord, DailyStats, WeeklyReport } from '../types';
 
-export const mockUsers: User[] = [
+export const mockUser: UserProfile = {
+  id: '1',
+  name: '小明',
+  avatar: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=young%20man%20portrait%20avatar%20professional&image_size=square',
+  age: 28,
+  height: 175,
+  weight: 75,
+  targetWeight: 68,
+  bodyFatRate: 22.5,
+  goal: 'lose_weight',
+  activityLevel: 'moderate',
+  startDate: '2024-01-01'
+};
+
+export const mockMessages: Message[] = [
   {
     id: '1',
-    name: '运动达人小王',
-    avatar: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=fitness%20man%20portrait%20avatar%20professional&image_size=square',
-    bio: '热爱跑步和健身，每周坚持5次训练',
-    level: '高级',
-    fitnessGoals: ['减脂', '增肌', '马拉松'],
-    location: '北京',
-    joinDate: '2024-01-15'
+    content: '嗨！我是你的 AI 减脂教练，很高兴为你服务！请问今天有什么可以帮到你的？',
+    sender: 'ai',
+    timestamp: '2024-05-27 08:00',
+    type: 'text'
   },
   {
     id: '2',
-    name: '瑜伽女神Lisa',
-    avatar: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=young%20woman%20yoga%20instructor%20portrait&image_size=square',
-    bio: '专业瑜伽教练，专注于身心平衡',
-    level: '专家',
-    fitnessGoals: ['柔韧性', '冥想', '健康生活'],
-    location: '上海',
-    joinDate: '2023-06-20'
+    content: '你好！我想咨询一下减脂计划',
+    sender: 'user',
+    timestamp: '2024-05-27 08:05',
+    type: 'text'
   },
   {
     id: '3',
-    name: '力量训练者Mike',
-    avatar: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=muscular%20man%20gym%20portrait%20professional&image_size=square',
-    bio: '健身爱好者，擅长力量训练',
-    level: '高级',
-    fitnessGoals: ['增肌', '力量提升', '体能训练'],
-    location: '深圳',
-    joinDate: '2024-03-10'
+    content: '太棒了！制定减脂计划需要了解一些基本信息。请问你的年龄、身高、体重是多少？还有你的运动习惯怎么样呢？',
+    sender: 'ai',
+    timestamp: '2024-05-27 08:06',
+    type: 'text'
   },
   {
     id: '4',
-    name: '跑步爱好者小陈',
-    avatar: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=runner%20athlete%20portrait%20energetic&image_size=square',
-    bio: '马拉松爱好者，已经完成3场全马',
-    level: '中级',
-    fitnessGoals: ['跑步', '马拉松', '耐力提升'],
-    location: '广州',
-    joinDate: '2024-02-28'
+    content: '我今年28岁，身高175cm，体重75kg，平时每周运动3次左右',
+    sender: 'user',
+    timestamp: '2024-05-27 08:10',
+    type: 'text'
+  },
+  {
+    id: '5',
+    content: '好的，根据你的信息，我来为你制定一份个性化的减脂计划：\n\n**饮食建议：**\n- 每日摄入约1800-2000卡路里\n- 蛋白质：每公斤体重1.2-1.5g\n- 碳水：选糙米、燕麦等优质碳水\n\n**运动建议：**\n- 有氧运动：每周3-4次，每次30-45分钟\n- 力量训练：每周2-3次，可在家或健身房\n\n**生活习惯：**\n- 保证7-8小时睡眠\n- 每天喝2-3升水\n\n需要我帮你详细解释哪一部分吗？',
+    sender: 'ai',
+    timestamp: '2024-05-27 08:12',
+    type: 'text'
+  },
+  {
+    id: '6',
+    content: '可以详细说说饮食方面吗？',
+    sender: 'user',
+    timestamp: '2024-05-27 08:15',
+    type: 'text'
+  },
+  {
+    id: '7',
+    content: '当然可以！饮食是减脂的核心，我来给你详细的饮食建议：\n\n**早餐（300-400卡路里）：**\n- 鸡蛋2个 + 全麦面包2片 + 牛奶200ml\n- 或 燕麦50g + 牛奶 + 水果\n\n**午餐（400-500卡路里）：**\n- 主食：糙米/藜麦半碗\n- 蛋白质：鸡胸肉/鱼/豆腐150g\n- 蔬菜：大量绿叶蔬菜\n\n**晚餐（300-400卡路里）：**\n- 清淡为主，减少碳水\n- 可以多吃蔬菜和蛋白质\n\n**加餐：**\n- 水果、坚果、无糖酸奶\n\n记得多喝水，饭前喝一杯有助于增加饱腹感哦！',
+    sender: 'ai',
+    timestamp: '2024-05-27 08:18',
+    type: 'text'
   }
 ];
 
-export const mockActivities: Activity[] = [
-  {
-    id: '1',
-    title: '周末晨跑约起来',
-    description: '每周六早上7点，奥林匹克森林公园约跑，距离5-10公里，欢迎新手加入',
-    type: 'running',
-    date: '2024-06-01',
-    time: '07:00',
-    location: '奥林匹克森林公园',
-    maxParticipants: 15,
-    currentParticipants: 8,
-    organizer: mockUsers[0],
-    participants: [mockUsers[0], mockUsers[3]],
-    tags: ['跑步', '有氧运动', '新手友好']
-  },
-  {
-    id: '2',
-    title: '瑜伽冥想工作坊',
-    description: '每周日上午9点，专业瑜伽教练带领，适合所有水平学员',
-    type: 'yoga',
-    date: '2024-06-02',
-    time: '09:00',
-    location: '静瑜伽工作室',
-    maxParticipants: 10,
-    currentParticipants: 6,
-    organizer: mockUsers[1],
-    participants: [mockUsers[1]],
-    tags: ['瑜伽', '冥想', '放松']
-  },
-  {
-    id: '3',
-    title: '力量训练小组课',
-    description: '每周二、四晚上，一起在健身房训练，互相监督进步',
-    type: 'gym',
-    date: '2024-06-04',
-    time: '19:00',
-    location: '力量健身俱乐部',
-    maxParticipants: 8,
-    currentParticipants: 5,
-    organizer: mockUsers[2],
-    participants: [mockUsers[2], mockUsers[0]],
-    tags: ['力量训练', '增肌', '健身房']
-  },
-  {
-    id: '4',
-    title: '城市骑行探索',
-    description: '探索城市周边骑行路线，全程约30公里',
-    type: 'cycling',
-    date: '2024-06-08',
-    time: '08:30',
-    location: '朝阳公园南门',
-    maxParticipants: 12,
-    currentParticipants: 7,
-    organizer: mockUsers[3],
-    participants: [mockUsers[3]],
-    tags: ['骑行', '户外活动', '城市探索']
-  }
+export const mockWeightRecords: WeightRecord[] = [
+  { date: '2024-05-01', weight: 78.5, bodyFatRate: 24.2 },
+  { date: '2024-05-08', weight: 77.8, bodyFatRate: 23.8 },
+  { date: '2024-05-15', weight: 77.2, bodyFatRate: 23.5 },
+  { date: '2024-05-22', weight: 76.5, bodyFatRate: 22.8 },
+  { date: '2024-05-27', weight: 75.0, bodyFatRate: 22.5 }
 ];
 
-export const mockCommunityPosts: CommunityPost[] = [
-  {
-    id: '1',
-    author: mockUsers[0],
-    content: '今天完成了10公里晨跑，感觉状态很好！有没有一起打卡的小伙伴？',
-    image: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=morning%20jogging%20sunrise%20park&image_size=landscape_16_9',
-    likes: 42,
-    comments: 8,
-    createdAt: '2024-05-27 08:30'
-  },
-  {
-    id: '2',
-    author: mockUsers[1],
-    content: '分享一个简单的办公室瑜伽拉伸动作，久坐的朋友们可以试试！',
-    image: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=yoga%20stretching%20office%20workspace&image_size=landscape_16_9',
-    likes: 67,
-    comments: 15,
-    createdAt: '2024-05-27 10:15'
-  },
-  {
-    id: '3',
-    author: mockUsers[2],
-    content: '今天练了深蹲和硬拉，腿部力量又进步了！附上训练计划供大家参考',
-    likes: 35,
-    comments: 12,
-    createdAt: '2024-05-26 18:45'
-  }
+export const mockExerciseRecords: ExerciseRecord[] = [
+  { id: '1', date: '2024-05-27', type: 'cardio', duration: 45, calories: 350, description: '跑步5公里' },
+  { id: '2', date: '2024-05-26', type: 'strength', duration: 60, calories: 280, description: '力量训练' },
+  { id: '3', date: '2024-05-25', type: 'cardio', duration: 30, calories: 220, description: '骑行' },
+  { id: '4', date: '2024-05-24', type: 'yoga', duration: 45, calories: 180, description: '瑜伽练习' },
+  { id: '5', date: '2024-05-23', type: 'cardio', duration: 40, calories: 300, description: '游泳' }
 ];
 
-export const mockWorkoutPlans: WorkoutPlan[] = [
-  {
-    id: '1',
-    title: '初学者全身训练计划',
-    description: '适合健身新手的全身训练，每周3次，循序渐进',
-    duration: 45,
-    level: 'beginner',
-    exercises: [
-      { id: '1', name: '徒手深蹲', sets: 3, reps: 15, rest: 60, description: '保持背部挺直，膝盖不超过脚尖' },
-      { id: '2', name: '俯卧撑', sets: 3, reps: 10, rest: 60, description: '核心收紧，身体成一条直线' },
-      { id: '3', name: '平板支撑', sets: 3, reps: 30, rest: 45, description: '保持身体稳定，不要塌腰' },
-      { id: '4', name: '臀桥', sets: 3, reps: 15, rest: 60, description: '臀部发力，挤压顶峰' }
-    ],
-    createdBy: mockUsers[2]
-  },
-  {
-    id: '2',
-    title: 'HIIT燃脂训练',
-    description: '高强度间歇训练，快速燃烧卡路里',
-    duration: 30,
-    level: 'intermediate',
-    exercises: [
-      { id: '1', name: '开合跳', sets: 4, reps: 40, rest: 30, description: '快速开合，保持心率' },
-      { id: '2', name: '波比跳', sets: 4, reps: 15, rest: 30, description: '全身运动，爆发力训练' },
-      { id: '3', name: '高抬腿', sets: 4, reps: 30, rest: 30, description: '快速抬腿，保持节奏' },
-      { id: '4', name: '登山者', sets: 4, reps: 40, rest: 30, description: '核心收紧，快速交替' }
-    ],
-    createdBy: mockUsers[0]
-  }
+export const mockDietRecords: DietRecord[] = [
+  { id: '1', date: '2024-05-27', mealType: 'breakfast', calories: 350, protein: 25, carbs: 40, fat: 12, food: '鸡蛋2个、全麦面包2片、牛奶200ml' },
+  { id: '2', date: '2024-05-27', mealType: 'lunch', calories: 450, protein: 35, carbs: 50, fat: 15, food: '糙米饭、鸡胸肉、西兰花' },
+  { id: '3', date: '2024-05-27', mealType: 'dinner', calories: 320, protein: 28, carbs: 25, fat: 10, food: '清蒸鱼、蔬菜沙拉' }
 ];
+
+export const mockDailyStats: DailyStats = {
+  date: '2024-05-27',
+  caloriesIntake: 1120,
+  caloriesBurned: 2400,
+  caloriesGoal: 1800,
+  steps: 8500,
+  waterIntake: 2200,
+  sleepHours: 7.5
+};
+
+export const mockWeeklyReport: WeeklyReport = {
+  weekStart: '2024-05-20',
+  weekEnd: '2024-05-27',
+  avgWeight: 76.2,
+  weightChange: -1.5,
+  avgBodyFat: 22.7,
+  totalExerciseMinutes: 220,
+  totalCaloriesBurned: 1550,
+  totalCaloriesIntake: 12600,
+  avgSteps: 7800
+};
+
+export const weightChartData = {
+  labels: ['5/1', '5/8', '5/15', '5/22', '5/27'],
+  weight: [78.5, 77.8, 77.2, 76.5, 75.0],
+  bodyFat: [24.2, 23.8, 23.5, 22.8, 22.5]
+};
+
+export const caloriesChartData = {
+  labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+  intake: [1850, 1720, 1900, 1680, 1800, 2000, 1120],
+  burned: [2200, 2400, 2100, 2500, 2300, 2600, 2400]
+};
+
+export const exerciseChartData = {
+  labels: ['跑步', '力量', '骑行', '瑜伽', '游泳'],
+  minutes: [90, 120, 60, 45, 40],
+  calories: [680, 560, 440, 360, 300]
+};
