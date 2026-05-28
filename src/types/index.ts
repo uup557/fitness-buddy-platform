@@ -13,6 +13,7 @@ export interface UserProfile {
   age: number;
   height: number;
   weight: number;
+  startWeight: number;
   targetWeight: number;
   bodyFatRate: number;
   goal: 'lose_weight' | 'maintain' | 'gain_muscle';

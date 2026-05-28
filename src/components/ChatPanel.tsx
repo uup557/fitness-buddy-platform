@@ -13,7 +13,6 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
   const [messages, setMessages] = useState<Message[]>(chatMessagesMap[activeChatId] || []);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isDeepThinking, setIsDeepThinking] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -38,7 +37,7 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
     }
   }, [inputValue]);
 
-  const handleSend = useCallback(async (deepThinking = false) => {
+  const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isTyping) return;
 
     const userMessage: Message = {
@@ -57,7 +56,6 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
-    setIsDeepThinking(deepThinking);
     setStreamingText('');
     setError(null);
 
@@ -92,7 +90,6 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
       setError(err instanceof Error ? err.message : '发送失败，请稍后再试');
     } finally {
       setIsTyping(false);
-      setIsDeepThinking(false);
       setStreamingText('');
     }
   }, [inputValue, isTyping, messages]);
@@ -100,7 +97,7 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend(false);
+      handleSend();
     }
   };
 
@@ -222,11 +219,6 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
                 <div className="flex-1 max-w-[85%]">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-semibold text-gray-800">小绿 AI</span>
-                    {isDeepThinking && (
-                      <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        深度思考中...
-                      </span>
-                    )}
                   </div>
                   <div className="bubble-ai p-4 rounded-2xl shadow-sm">
                     <div className="typing-indicator">
@@ -304,7 +296,7 @@ export default function ChatPanel({ onToggleSidebar, activeChatId }: ChatPanelPr
                   <Paperclip className="h-4 w-4 text-gray-500" />
                 </button>
                 <button
-                  onClick={() => handleSend(false)}
+                  onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isTyping}
                   className={`p-2 rounded-xl transition-all ${
                     inputValue.trim() && !isTyping

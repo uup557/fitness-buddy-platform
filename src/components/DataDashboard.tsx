@@ -9,7 +9,7 @@ import {
 } from '../data/mockData';
 
 export default function DataDashboard() {
-  const progressPercent = ((mockUser.weight - mockUser.targetWeight) / (mockUser.weight - (mockUser.weight * 0.9))) * 100;
+  const progressPercent = Math.max(0, Math.min(((mockUser.weight - mockUser.targetWeight) / (mockUser.startWeight - mockUser.targetWeight)) * 100, 100));
 
   const renderWeightChart = () => {
     const maxWeight = Math.max(...weightChartData.weight) + 2;

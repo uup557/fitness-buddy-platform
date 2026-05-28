@@ -7,6 +7,7 @@ export const mockUser: UserProfile = {
   age: 28,
   height: 175,
   weight: 75,
+  startWeight: 82,
   targetWeight: 68,
   bodyFatRate: 22.5,
   goal: 'lose_weight',
