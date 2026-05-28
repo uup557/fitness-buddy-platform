@@ -28,6 +28,29 @@ export interface ChatMessage {
   sender: 'user' | 'ai';
 }
 
+/** Offline fallback responses */
+const OFFLINE_RESPONSES = [
+  '嗨！我现在处于离线模式 🌱 虽然暂时连不上AI服务器，但基础功能都可以正常使用哦！\n\n你可以先浏览**数据报告**查看你的减脂进度，或者在**记录**页面记录今天的饮食和运动~',
+  '抱歉，当前网络不太稳定 📶 不过别担心，你的数据都在本地保存着呢！\n\n试试先记录一下今天的饮食吧，等网络恢复了我再帮你分析~',
+  '离线模式下我暂时不能回复，但你可以：\n\n📊 查看**数据报告**了解减脂趋势\n📝 在**记录**页面打卡饮食运动\n👥 浏览**社区**找健身搭子\n\n等网络恢复了再来找我聊天吧~ 💪',
+  '网络好像断了呢 🌧️ 不过减脂不能停！\n\n建议你先做这些：\n- 记录今天的体重\n- 看看社区里其他小伙伴的分享\n- 检查一下今天的饮水量\n\n我等网络恢复了就回来陪你~ ✨',
+];
+
+function getOfflineResponse(userMessage: string): string {
+  const lower = userMessage.toLowerCase();
+  if (lower.includes('饮食') || lower.includes('吃') || lower.includes('餐')) {
+    return '关于饮食建议，我现在离线没法详细分析 🍽️\n\n不过有个简单原则：**多蛋白质、适量碳水、少油少糖**。\n\n等网络恢复了，告诉我你今天吃了什么，我帮你算热量~ 💪';
+  }
+  if (lower.includes('运动') || lower.includes('锻炼') || lower.includes('跑')) {
+    return '运动建议我离线时给不了太具体的 🏃\n\n但记住：**动起来就比不动强！** 哪怕散步20分钟也是好的开始~\n\n等网络恢复了告诉我你的运动习惯，我帮你制定计划！💪';
+  }
+  if (lower.includes('体重') || lower.includes('称')) {
+    return '体重记录很重要！⚖️\n\n建议你去**记录**页面打卡体重数据，每天固定时间称重最准确哦~\n\n等网络恢复了我帮你分析趋势 📊';
+  }
+  // Random fallback
+  return OFFLINE_RESPONSES[Math.floor(Math.random() * OFFLINE_RESPONSES.length)];
+}
+
 /**
  * 流式解析SSE响应
  */
@@ -138,13 +161,38 @@ async function sendViaServerless(
 
 /**
  * 发送消息给AI并获取流式响应
+ * 离线时返回友好的离线回复
  */
 export async function sendChatMessage(
   messages: ChatMessage[],
   onChunk?: (chunk: string) => void,
 ): Promise<string> {
-  if (IS_PROD) {
-    return sendViaServerless(messages, onChunk);
+  const lastUserMsg = [...messages].reverse().find(m => m.sender === 'user');
+  const userText = lastUserMsg?.content || '';
+
+  try {
+    // Quick connectivity check
+    if (!navigator.onLine) {
+      throw new Error('Offline');
+    }
+
+    if (IS_PROD) {
+      return await sendViaServerless(messages, onChunk);
+    }
+    return await sendDirectToMiMo(messages, onChunk);
+  } catch (err) {
+    console.warn('Chat API unavailable, using offline fallback:', err);
+    // Simulate streaming for offline response
+    const offlineReply = getOfflineResponse(userText);
+    if (onChunk) {
+      let accumulated = '';
+      for (let i = 0; i < offlineReply.length; i += 3) {
+        accumulated = offlineReply.slice(0, i + 3);
+        onChunk(accumulated);
+        await new Promise(r => setTimeout(r, 20));
+      }
+      onChunk(offlineReply);
+    }
+    return offlineReply;
   }
-  return sendDirectToMiMo(messages, onChunk);
 }

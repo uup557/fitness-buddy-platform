@@ -7,7 +7,7 @@ interface SidebarProps {
   onCreateNewChat: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
-  onNavigateToTab?: (tab: 'chat' | 'dashboard' | 'record' | 'profile') => void;
+  onNavigateToDashboard?: () => void;
 }
 
 interface ChatItem {
@@ -25,7 +25,7 @@ const mockChats: ChatItem[] = [
   { id: '4', title: '新手入门指导', preview: '很高兴为你服务！请问今天有什么可以帮...', time: '1周前' },
 ];
 
-export default function Sidebar({ activeChatId, onChatSelect, onCreateNewChat, isCollapsed, onToggleCollapse, onNavigateToTab }: SidebarProps) {
+export default function Sidebar({ activeChatId, onChatSelect, onCreateNewChat, isCollapsed, onToggleCollapse, onNavigateToDashboard }: SidebarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
 
   return (
@@ -154,7 +154,7 @@ export default function Sidebar({ activeChatId, onChatSelect, onCreateNewChat, i
         {/* 数据报告入口 */}
         {!isCollapsed && (
           <button
-            onClick={() => onNavigateToTab?.('dashboard')}
+            onClick={() => onNavigateToDashboard?.()}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-emerald-50 transition-all duration-200 mb-2 text-left group"
           >
             <div className="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
@@ -165,7 +165,7 @@ export default function Sidebar({ activeChatId, onChatSelect, onCreateNewChat, i
         )}
         {isCollapsed && (
           <button
-            onClick={() => onNavigateToTab?.('dashboard')}
+            onClick={() => onNavigateToDashboard?.()}
             className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-emerald-50 transition-colors" title="数据报告"
           >
             <BarChart3 className="h-5 w-5 text-emerald-600" />

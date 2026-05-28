@@ -143,6 +143,122 @@ GitHub上的 `src/index.css` 使用了Tailwind CSS v3语法，但项目使用的
 
 ---
 
+## 🐛 Bug #7: Capacitor加载远程URL导致白屏
+
+**日期**: 2026-05-28
+**严重程度**: 🔴 致命
+**状态**: ✅ 已修复
+
+### 问题描述
+App启动后白屏，无网络时完全无法使用。
+
+### 根本原因
+`capacitor.config.ts` 中配置了 `server.url: 'https://fitness-buddy-platform.vercel.app'`，
+Capacitor从远程URL加载而非本地 `dist/` 资源。无网络 = 白屏。
+
+### 修复方案
+移除 `server.url`，让Capacitor从本地 `webDir: 'dist'` 加载构建产物。
+
+### 预防措施
+- ⚠️ Capacitor原生App必须加载本地资源，不要用远程URL
+- ⚠️ 部署前运行 `npx cap sync` 确认资源同步
+- ⚠️ 断网测试验证App基本功能
+
+---
+
+## 🐛 Bug #8: 5个组件孤立未使用
+
+**日期**: 2026-05-28
+**严重程度**: 🟡 中
+**状态**: ✅ 已修复
+
+### 问题描述
+`Navbar`、`HeroBanner`、`ActivityCard`、`CommunityPostCard`、`UserCard` 五个组件
+存在于代码库但从未在 App.tsx 中引用，功能无法触达。
+
+### 修复方案
+- 新建 `CommunityPage.tsx` 整合 HeroBanner、ActivityCard、CommunityPostCard、UserCard
+- 新建 `communityData.ts` 提供社区Mock数据
+- App.tsx 新增 `community` tab，5-tab导航完整覆盖
+
+---
+
+## 🐛 Bug #9: Sidebar"数据报告"按钮无响应
+
+**日期**: 2026-05-28
+**严重程度**: 🟡 中
+**状态**: ✅ 已修复
+
+### 问题描述
+Sidebar底部"数据报告"按钮 `onClick={() => {}}` 是空函数，点击无反应。
+
+### 修复方案
+新增 `onNavigateToDashboard` prop，按钮点击切换到 dashboard tab。
+
+---
+
+## 🐛 Bug #10: Record/Profile Tab无内容
+
+**日期**: 2026-05-28
+**严重程度**: 🟡 中
+**状态**: ✅ 已修复
+
+### 问题描述
+"记录"和"我的" Tab只显示占位文字，无实际功能。
+
+### 修复方案
+- 新建 `RecordPage.tsx`：体重记录(含图表)、饮食记录、运动记录，三个子Tab
+- 新建 `ProfilePage.tsx`：用户资料、减脂目标进度、成就徽章、今日概览、设置菜单
+- 均使用 `mockData.ts` 中已有数据
+
+---
+
+## 🐛 Bug #11: 离线时AI对话崩溃
+
+**日期**: 2026-05-28
+**严重程度**: 🟡 中
+**状态**: ✅ 已修复
+
+### 问题描述
+无网络时发送消息，`chatService` 抛出异常，前端显示错误。
+
+### 修复方案
+- 检查 `navigator.onLine`，离线时直接走fallback
+- API调用外层 try-catch，失败时返回上下文相关的离线回复
+- 离线回复模拟流式输出效果（逐字显示）
+
+---
+
+## 🐛 Bug #12: 体重变化对比索引错误
+
+**日期**: 2026-05-28
+**严重程度**: 🟡 中
+**状态**: ✅ 已修复
+
+### 问题描述
+RecordPage中体重历史列表的对比逻辑 `mockWeightRecords[length - 1 - i + 1]` 索引计算错误，
+导致显示的增减数据不正确。
+
+### 修复方案
+使用 `.slice().reverse().map((record, i, arr) => arr[i-1])` 简化对比逻辑。
+
+---
+
+## 🐛 Bug #13: ProfilePage进度条公式不一致
+
+**日期**: 2026-05-28
+**严重程度**: 🟢 低
+**状态**: ✅ 已修复
+
+### 问题描述
+ProfilePage进度条使用 `(weight - targetWeight) / (weight * 0.1)` 公式，
+与DataDashboard的 `(weight - targetWeight) / (startWeight - targetWeight)` 不一致。
+
+### 修复方案
+统一使用 `startWeight - targetWeight` 作为分母。
+
+---
+
 ## 📊 常见问题模式总结
 
 ### 1. TypeScript类型问题
@@ -206,3 +322,4 @@ GitHub上的 `src/index.css` 使用了Tailwind CSS v3语法，但项目使用的
 - 2026-05-27: 添加Bug #1-5的记录
 - 2026-05-27: 添加Bug #6（Tailwind CSS版本语法不匹配）
 - 2026-05-27: 添加"提交检查清单"章节
+- 2026-05-28: 添加Bug #7-13（白屏、孤立组件、Sidebar死按钮、Tab无内容、离线崩溃、索引错误、公式不一致）

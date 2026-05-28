@@ -2,12 +2,15 @@ import { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatPanel from './components/ChatPanel';
 import DataDashboard from './components/DataDashboard';
+import CommunityPage from './components/CommunityPage';
 import RecordPage from './components/RecordPage';
 import ProfilePage from './components/ProfilePage';
-import { MessageCircle, BarChart3, ClipboardList, User, Leaf } from 'lucide-react';
+import { MessageCircle, BarChart3, ClipboardList, User, Leaf, ArrowLeft, Users, Map } from 'lucide-react';
+
+export type AppTab = 'chat' | 'community' | 'record' | 'dashboard' | 'profile';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'chat' | 'dashboard' | 'record' | 'profile'>('chat');
+  const [activeTab, setActiveTab] = useState<AppTab>('chat');
   const [activeChatId, setActiveChatId] = useState('1');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
@@ -16,29 +19,79 @@ export default function App() {
     setActiveChatId(newId);
   };
 
-  const handleTabSwitch = (tab: 'chat' | 'dashboard' | 'record' | 'profile') => {
+  const switchTab = (tab: AppTab) => {
     setActiveTab(tab);
-    // 切换tab时关闭移动端侧边栏
-    if (window.innerWidth < 1024) {
+    // Auto-collapse sidebar when switching away from chat
+    if (tab !== 'chat') {
       setIsSidebarCollapsed(true);
     }
   };
 
-  const navTabs = [
-    { id: 'chat' as const, icon: MessageCircle, label: 'AI 对话' },
-    { id: 'dashboard' as const, icon: BarChart3, label: '数据报告' },
-    { id: 'record' as const, icon: ClipboardList, label: '记录' },
-    { id: 'profile' as const, icon: User, label: '我的' },
+  // Desktop header nav items
+  const desktopNavItems = [
+    { id: 'chat' as const, label: 'AI 对话', icon: MessageCircle },
+    { id: 'community' as const, label: '社区', icon: Users },
+    { id: 'record' as const, label: '记录', icon: ClipboardList },
+    { id: 'dashboard' as const, label: '数据', icon: BarChart3 },
+    { id: 'profile' as const, label: '我的', icon: User },
   ];
 
-  const getTabTitle = () => {
-    const tab = navTabs.find(t => t.id === activeTab);
-    return tab?.label || 'AI伙伴';
+  // Mobile bottom nav items
+  const mobileNavItems = [
+    { id: 'chat' as const, label: '对话', icon: MessageCircle },
+    { id: 'community' as const, label: '社区', icon: Map },
+    { id: 'record' as const, label: '记录', icon: ClipboardList },
+    { id: 'dashboard' as const, label: '数据', icon: BarChart3 },
+    { id: 'profile' as const, label: '我的', icon: User },
+  ];
+
+  // Which tabs show the sidebar
+  const showSidebar = activeTab === 'chat';
+
+  // Mobile top bar config
+  const getMobileTopBar = () => {
+    if (activeTab === 'dashboard') {
+      return {
+        left: (
+          <button
+            onClick={() => switchTab('chat')}
+            className="p-2 hover:bg-emerald-50 rounded-xl transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft className="h-5 w-5 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">返回</span>
+          </button>
+        ),
+        title: '数据报告',
+      };
+    }
+    if (activeTab === 'community') {
+      return { left: <div className="w-9" />, title: '健身社区' };
+    }
+    if (activeTab === 'record') {
+      return { left: <div className="w-9" />, title: '记录' };
+    }
+    if (activeTab === 'profile') {
+      return { left: <div className="w-9" />, title: '我的' };
+    }
+    // chat tab
+    return {
+      left: (
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="p-2 hover:bg-emerald-50 rounded-xl transition-colors"
+        >
+          <MessageCircle className="h-5 w-5 text-emerald-600" />
+        </button>
+      ),
+      title: 'AI伙伴',
+    };
   };
+
+  const mobileBar = getMobileTopBar();
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-emerald-50/50 to-teal-50/30">
-      {/* 桌面端顶部导航栏 */}
+      {/* Desktop top nav */}
       <header className="hidden lg:flex items-center justify-between h-16 px-6 bg-white/80 backdrop-blur-md border-b border-emerald-100 shadow-sm z-40">
         <div className="flex items-center gap-3">
           <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-2 rounded-xl shadow-sm">
@@ -47,22 +100,25 @@ export default function App() {
           <span className="font-bold text-emerald-800 text-lg">AI 减脂伙伴</span>
         </div>
 
-        {/* 主导航标签 - 4个tab */}
         <nav className="flex items-center bg-emerald-50/80 rounded-2xl p-1 gap-1">
-          {navTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabSwitch(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeTab === tab.id
-                  ? 'bg-white text-emerald-700 shadow-md shadow-emerald-100/50 scale-[1.02]'
-                  : 'text-gray-500 hover:text-emerald-600 hover:bg-white/50'
-              }`}
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          ))}
+          {desktopNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => switchTab(item.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                  isActive
+                    ? 'bg-white text-emerald-700 shadow-md shadow-emerald-100/50 scale-[1.02]'
+                    : 'text-gray-500 hover:text-emerald-600 hover:bg-white/50'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -77,8 +133,8 @@ export default function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* 侧边栏 - 仅在chat tab下显示 */}
-        {activeTab === 'chat' && (
+        {/* Sidebar - only on chat tab */}
+        {showSidebar && (
           <Sidebar
             activeChatId={activeChatId}
             onChatSelect={(id) => {
@@ -90,38 +146,26 @@ export default function App() {
             onCreateNewChat={handleCreateNewChat}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            onNavigateToTab={handleTabSwitch}
+            onNavigateToDashboard={() => switchTab('dashboard')}
           />
         )}
 
         <div className="flex-1 flex flex-col min-h-0">
-          {/* 移动端顶部栏 */}
+          {/* Mobile top bar */}
           <div className="lg:hidden flex items-center justify-between p-3 bg-white/80 backdrop-blur-sm border-b border-emerald-100">
-            {activeTab !== 'chat' ? (
-              <button
-                onClick={() => handleTabSwitch('chat')}
-                className="p-2 hover:bg-emerald-50 rounded-xl transition-colors flex items-center gap-1"
-              >
-                <span className="text-sm font-medium text-emerald-700">← 返回</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="p-2 hover:bg-emerald-50 rounded-xl transition-colors"
-              >
-                <MessageCircle className="h-5 w-5 text-emerald-600" />
-              </button>
-            )}
+            {mobileBar.left}
             <div className="flex items-center gap-2">
               <span className="text-lg">🌱</span>
-              <span className="font-bold text-emerald-800">{getTabTitle()}</span>
+              <span className="font-bold text-emerald-800">{mobileBar.title}</span>
             </div>
             <div className="w-9" />
           </div>
 
-          {/* 内容区域 - 统一动画 */}
+          {/* Content area */}
           <div className="flex-1 overflow-y-auto">
-            <div className="animate-fade-in">
+            <div className={`transition-all duration-300 ${
+              activeTab === 'chat' || activeTab === 'dashboard' ? 'animate-fade-in' : ''
+            }`}>
               {activeTab === 'chat' && (
                 <ChatPanel
                   onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -129,29 +173,31 @@ export default function App() {
                 />
               )}
               {activeTab === 'dashboard' && <DataDashboard />}
-              {activeTab === 'record' && <RecordPage onNavigateToChat={() => handleTabSwitch('chat')} />}
+              {activeTab === 'community' && <CommunityPage />}
+              {activeTab === 'record' && <RecordPage />}
               {activeTab === 'profile' && <ProfilePage />}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 底部导航栏 - 手机端 */}
+      {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-emerald-100 z-50 safe-area-pb">
-        <div className="flex items-center justify-around px-2 py-2">
-          {navTabs.map((item) => {
+        <div className="flex items-center justify-around px-1 py-2">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => handleTabSwitch(item.id)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 ${
+                onClick={() => switchTab(item.id)}
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-300 ${
                   isActive
                     ? 'bg-emerald-50 text-emerald-600 scale-105'
                     : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50/50'
                 }`}
               >
-                <item.icon className={`h-5 w-5 ${isActive ? 'text-emerald-500' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon className={`h-5 w-5 ${isActive ? 'text-emerald-500' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
                 <span className={`text-xs font-medium ${isActive ? 'text-emerald-600' : ''}`}>{item.label}</span>
               </button>
             );

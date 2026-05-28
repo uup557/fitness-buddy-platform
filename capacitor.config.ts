@@ -6,8 +6,6 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
-    url: 'https://fitness-buddy-platform.vercel.app',
-    cleartext: true,
   },
   plugins: {
     SplashScreen: {
